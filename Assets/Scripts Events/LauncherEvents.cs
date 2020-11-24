@@ -5,16 +5,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum Roles { Pilot, Gunner }
-
-public class Launcher : MonoBehaviourPunCallbacks
+public class LauncherEvents : MonoBehaviourPunCallbacks
 {
     [Header("Launcher:")]
     [SerializeField] private GameObject launcherPanel;
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private Button joinRoomAsPilotButton;
     [SerializeField] private Button joinRoomAsGunnerButton;
-    [SerializeField] private Toggle joinTeam1Toggle;
 
     [Header("In-Game:")]
     [SerializeField] private GameObject inGamePanel;
@@ -27,6 +24,8 @@ public class Launcher : MonoBehaviourPunCallbacks
     private bool isConnecting;
 
     public static Roles role;
+
+    public static byte[] InterestGroups = new byte[0];
 
     private void Awake()
     {
@@ -83,8 +82,9 @@ public class Launcher : MonoBehaviourPunCallbacks
         if (subscribedTo2Toggle.isOn) groups.Add(2);
         if (subscribedTo11Toggle.isOn) groups.Add(11);
         if (subscribedTo12Toggle.isOn) groups.Add(2);
-        PhotonNetwork.SetInterestGroups(new byte[0], groups.ToArray());
-        Debug.Log("Set interest groups: " + string.Join(", ", groups));
+        InterestGroups = groups.ToArray();
+        PhotonNetwork.SetInterestGroups(new byte[0], InterestGroups);
+        Debug.Log("Set interest groups: " + string.Join(", ", InterestGroups));
     }
 
     #region PhotonCallbacks
@@ -137,8 +137,8 @@ public class Launcher : MonoBehaviourPunCallbacks
         launcherPanel.SetActive(false);
         inGamePanel.SetActive(true);
 
-        subscribedTo1Toggle.isOn = joinTeam1Toggle.isOn;
-        subscribedTo2Toggle.isOn = !joinTeam1Toggle.isOn;
+        subscribedTo1Toggle.isOn = true;
+        subscribedTo2Toggle.isOn = false;
         subscribedTo11Toggle.isOn = false;
         subscribedTo12Toggle.isOn = false;
         subscribedTo1Toggle.onValueChanged.AddListener(UpdateSubscription);
@@ -155,11 +155,11 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     private void Initialize()
     {
-        var team = (byte) (joinTeam1Toggle.isOn ? 1 : 2);
-        PhotonNetwork.SetInterestGroups(new byte[0], new byte[1] { team });
+        UpdateSubscription(default);
         if (role == Roles.Pilot)
         {
-            ship = PhotonNetwork.Instantiate("Ship", new Vector3(Random.Range(-3f, 3f), 0, 0), Quaternion.identity, team).GetComponent<Ship>();
+            ship = PhotonNetwork.Instantiate("ShipEvents", new Vector3(Random.Range(-3f, 3f), 0, 0), Quaternion.identity).GetComponent<Ship>();
+            Debug.Log($"Instantiated Ship {ship.PhotonView.InstantiationId} in Group 0.");
         }
     }
 }

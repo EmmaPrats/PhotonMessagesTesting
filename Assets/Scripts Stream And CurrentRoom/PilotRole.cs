@@ -22,18 +22,18 @@ public class PilotRole : MonoBehaviourPunCallbacks, IPunOwnershipCallbacks, IPun
     }
 
     private float time;
-    
+
     private void Update()
     {
         if (!photonView.IsMine)
             return;
-        
+
         if (Input.GetKeyDown(KeyCode.M))
         {
             time = Time.time;
 
             Debug.Log("Pilot (mine) sets time custom property in CurrentRoom: " + time);
-            
+
             Hashtable props = new Hashtable
             {
                 {"time", "pilot " + time}
